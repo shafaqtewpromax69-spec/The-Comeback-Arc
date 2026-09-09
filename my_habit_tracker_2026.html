@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Habit Tracker — 2026</title>
+<style>
+:root{
+  --bg:#f4f5f7; --panel:#ffffff; --ink:#111318; --muted:#6d727c;
+  --line:#e2e5ea; --accent:#111318; --soft:#f0f1f3; --good:#159447;
+  --shadow:0 14px 40px rgba(18,22,28,.08); --radius:18px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(135deg,#eef0f3,#fafafa 45%,#eef0f3);
+font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink)}
+button,input{font:inherit}
+.app{max-width:1500px;margin:0 auto;padding:24px}
+.topbar{background:#111318;color:#fff;border-radius:20px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:var(--shadow)}
+.brand h1{margin:0;font-size:clamp(22px,3vw,36px);letter-spacing:-1px}
+.brand p{margin:5px 0 0;color:#bfc3ca;font-size:13px}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{border:1px solid #dfe2e7;background:#fff;color:#111318;border-radius:11px;padding:9px 12px;cursor:pointer;font-weight:700}
+.btn.dark{background:#111318;color:#fff;border-color:#383b41}
+.btn:hover{transform:translateY(-1px)}
+.month-select{border-radius:11px;padding:9px 12px;border:1px solid #3a3d44;background:#1c1f24;color:#fff}
+.dashboard{display:grid;grid-template-columns:1fr 340px;gap:18px;margin-top:18px}
+.card{background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.tracker-wrap{overflow:auto}
+.tracker{min-width:1040px;padding:16px}
+.grid{display:grid;grid-template-columns:180px repeat(31,30px) 92px 120px;align-items:center}
+.head{font-size:11px;font-weight:800;color:#6b7078;text-align:center;padding:8px 0}
+.habit-head{text-align:left;padding-left:12px}
+.habit{font-weight:800;font-size:13px;padding:10px 12px;border-right:1px solid var(--line);white-space:nowrap}
+.daycell{height:40px;display:flex;align-items:center;justify-content:center}
+.daycell input{appearance:none;width:19px;height:19px;border:2px solid #bfc4cb;border-radius:4px;background:#fff;cursor:pointer;position:relative}
+.daycell input:checked{background:#111318;border-color:#111318}
+.daycell input:checked:after{content:"✓";position:absolute;color:#fff;font-size:13px;font-weight:900;left:2px;top:-1px}
+.daycell.today input{box-shadow:0 0 0 3px rgba(21,148,71,.16)}
+.goal,.progress{font-size:12px;text-align:center;font-weight:800}
+.goal input{width:55px;border:1px solid var(--line);border-radius:8px;padding:5px;text-align:center}
+.progress-bar{height:9px;background:#eceef1;border-radius:999px;overflow:hidden;margin:0 8px}
+.progress-fill{height:100%;background:#111318;border-radius:999px;width:0}
+.rowline{border-bottom:1px solid var(--line)}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 16px;border-top:1px solid var(--line)}
+.stat{background:#f5f6f7;border-radius:13px;padding:12px}
+.stat b{display:block;font-size:22px}.stat span{font-size:11px;color:var(--muted)}
+.side{padding:18px}
+.side h2{margin:0 0 4px;font-size:18px}.side .date{color:var(--muted);font-size:12px;margin-bottom:16px}
+.big-progress{height:12px;background:#eceef1;border-radius:999px;overflow:hidden;margin:10px 0 16px}
+.big-progress div{height:100%;background:#111318;width:0}
+.routine{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
+.routine h3{margin:0 0 8px;font-size:14px}.routine ul{padding-left:18px;margin:0}.routine li{margin:7px 0;font-size:13px;line-height:1.35}
+.quote{margin-top:16px;background:#111318;color:#fff;border-radius:14px;padding:14px;font-size:13px;line-height:1.45}
+.section{margin-top:18px;padding:18px}
+.section h2{margin:0 0 12px;font-size:18px}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:9px}
+.week-card{background:#f5f6f7;border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer}
+.week-card strong{font-size:12px}.week-card .pct{font-size:24px;font-weight:900;margin-top:5px}.week-card small{color:var(--muted)}
+.footer{color:#737983;text-align:center;font-size:11px;padding:18px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:5}
+.modal.show{display:flex}.modal-box{max-width:700px;width:100%;background:#fff;border-radius:20px;padding:22px;box-shadow:0 30px 90px rgba(0,0,0,.25)}
+.modal-box h2{margin:0 0 4px}.modal-box p{color:var(--muted);font-size:13px}.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.routine-card{border:1px solid var(--line);border-radius:14px;padding:13px}.routine-card b{font-size:13px}.routine-card div{margin-top:5px;font-size:12px;color:#555b64;line-height:1.4}
+@media(max-width:900px){.dashboard{grid-template-columns:1fr}.side{order:-1}.summary{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.app{padding:10px}.topbar{padding:16px}.modal-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <h1>MY HABIT TRACKER</h1>
+      <p>Study • Training • Health • Discipline — built around your weekly routine</p>
+    </div>
+    <div class="controls">
+      <select id="month" class="month-select"></select>
+      <button class="btn" id="todayBtn">Today</button>
+      <button class="btn" id="resetBtn">Reset month</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="dashboard">
+      <section class="card tracker-wrap">
+        <div class="tracker">
+          <div id="grid" class="grid"></div>
+          <div class="summary" id="summary"></div>
+        </div>
+      </section>
+
+      <aside class="card side">
+        <h2 id="todayTitle">Today</h2>
+        <div class="date" id="todayDate"></div>
+        <div class="big-progress"><div id="todayProgress"></div></div>
+        <div id="todayPercent" style="font-weight:900;font-size:28px">0%</div>
+        <div class="routine">
+          <h3 id="routineTitle">Today's routine</h3>
+          <ul id="routineList"></ul>
+        </div>
+        <div class="quote"><b>Rule:</b> Don't chase a perfect week. Chase a completed week. If you miss one task, continue with the next.</div>
+      </aside>
+    </div>
+
+    <section class="card section">
+      <h2>Weekly progress</h2>
+      <div id="weeks" class="week-grid"></div>
+    </section>
+  </main>
+
+  <div class="footer">Your checkmarks are saved automatically in this browser.</div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <button class="btn" style="float:right" id="closeModal">Close</button>
+    <h2>Weekly routine</h2>
+    <p>Use this as the reference behind the tracker. The plan is deliberately balanced so study stays the priority during exam periods.</p>
+    <div class="modal-grid" id="routineCards"></div>
+  </div>
+</div>
+
+<script>
+const habits = [
+  {id:"school", name:"School / commitments", goal:5},
+  {id:"study", name:"Planned study", goal:7},
+  {id:"move", name:"Workout / movement", goal:5},
+  {id:"meals", name:"Proper meals", goal:7},
+  {id:"water", name:"Water", goal:7},
+  {id:"screen", name:"Screen control", goal:7},
+  {id:"read", name:"Reading", goal:5},
+  {id:"journal", name:"Journal", goal:5},
+  {id:"plan", name:"Plan tomorrow", goal:5},
+  {id:"sleep", name:"Sleep routine", goal:7},
+  {id:"room", name:"Room reset", goal:5}
+];
+
+const routines = {
+  0:["Sunday — school + study + workout","Wake 5:45","School 7:00–1:00","Lunch + 30–45 min rest","Study I — 1 hour","Workout — about 30–45 min","Shower","Study II — about 1.5 hours","Free time + dinner","Read ~20 min","Journal + plan Monday","Night routine; aim for 9:45–10:00 sleep"],
+  1:["Monday — school + coaching","Wake 5:45","School 7:00–1:00","Lunch","Coaching / planned commitment","Snack when home","Workout — about 30 min","Shower","Study — about 1 hour","Dinner + prepare Tuesday","Journal + night routine; aim for 9:45–10:00 sleep"],
+  2:["Tuesday — school + study + workout","Wake 5:45","School 7:00–1:00","Lunch + rest","Study I — 1 hour","Workout — about 30 min","Shower","Study II — about 1 hour","Dinner + prepare Wednesday","Read ~20 min","Journal + night routine"],
+  3:["Wednesday — big study day","Wake 5:45","School 7:00–1:00","Lunch + rest","Study I — 1.5 hours","Workout — about 45 min","Shower","Study II — 1.5 hours","Break / free time","Study III — about 1 hour","Dinner + reading","Journal + plan Thursday"],
+  4:["Thursday — big study day","Wake 5:45","School 7:00–1:00","Lunch + rest","Study I — 1.5 hours","Workout — about 45 min","Shower","Study II — 1.5 hours","Break / free time","Study III — about 1 hour","Dinner + reading","Journal + plan Friday"],
+  5:["Friday — no school + study + workout + reset","Wake 6:30","Breakfast","Study I — 1.5 hours","Break","Workout — about 45 min","Shower + lunch","Study II — 1.5 hours","Coaching / planned commitments if any","Clean room + free time","Weekly review + journal","Plan Saturday; night routine; aim for ~10:00 sleep"],
+  6:["Saturday — light day","Wake 6:30","Breakfast","Study I — 1 hour","Lunch + rest","Light workout / mobility — 20–30 min","Shower","Light revision — 45–60 min","Dinner + free time","Journal + prepare Sunday","Night routine; aim for 9:45–10:00 sleep"]
+};
+
+const key = "my-habit-tracker-v1";
+let state = JSON.parse(localStorage.getItem(key) || "{}");
+let selectedDate = new Date();
+let viewYear = selectedDate.getFullYear();
+let viewMonth = selectedDate.getMonth();
+
+function daysInMonth(y,m){ return new Date(y,m+1,0).getDate(); }
+function dateKey(y,m,d){ return `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`; }
+function isToday(y,m,d){ const t=new Date(); return t.getFullYear()===y&&t.getMonth()===m&&t.getDate()===d; }
+function save(){localStorage.setItem(key,JSON.stringify(state));}
+function getVal(date,id){return !!(state[date] && state[date][id]);}
+function setVal(date,id,val){
+  if(!state[date]) state[date]={};
+  state[date][id]=val; save(); render();
+}
+function monthName(m){return new Date(2026,m,1).toLocaleString(undefined,{month:"long"});}
+
+function renderMonthSelect(){
+  const s=document.getElementById("month"); s.innerHTML="";
+  for(let m=0;m<12;m++){const o=document.createElement("option");o.value=m;o.textContent=monthName(m)+" 2026";if(m===viewMonth)o.selected=true;s.appendChild(o);}
+  s.onchange=()=>{viewMonth=+s.value;render()};
+}
+
+function render(){
+  renderMonthSelect();
+  const grid=document.getElementById("grid");
+  grid.innerHTML="";
+  const n=daysInMonth(viewYear,viewMonth);
+
+  const first=new Date(viewYear,viewMonth,1).getDay();
+  // Header
+  let h='<div class="head habit-head">HABITS</div>';
+  for(let d=1;d<=31;d++) h+=`<div class="head">${d<=n?d:""}</div>`;
+  h+='<div class="head">GOAL</div><div class="head">PROGRESS</div>';
+  grid.insertAdjacentHTML("beforeend",h);
+
+  habits.forEach(habit=>{
+    let row=`<div class="habit rowline">${habit.name}</div>`;
+    for(let d=1;d<=31;d++){
+      if(d>n){row+='<div class="daycell rowline"></div>';continue;}
+      const dk=dateKey(viewYear,viewMonth,d);
+      row+=`<div class="daycell rowline ${isToday(viewYear,viewMonth,d)?"today":""}">
+        <input type="checkbox" ${getVal(dk,habit.id)?"checked":""} aria-label="${habit.name} day ${d}"
+        onchange="setVal('${dk}','${habit.id}',this.checked)">
+      </div>`;
+    }
+    const goal=(state.goals&&state.goals[habit.id]!=null)?state.goals[habit.id]:habit.goal;
+    let count=0; for(let d=1;d<=n;d++) if(getVal(dateKey(viewYear,viewMonth,d),habit.id)) count++;
+    const pct=goal?Math.min(100,Math.round(count/goal*100)):0;
+    row+=`<div class="goal rowline"><input type="number" min="0" max="31" value="${goal}" onchange="setGoal('${habit.id}',this.value)"></div>`;
+    row+=`<div class="progress rowline"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div><small>${count}/${goal}</small></div>`;
+    grid.insertAdjacentHTML("beforeend",row);
+  });
+
+  const totals = calcTotals();
+  document.getElementById("summary").innerHTML=`
+    <div class="stat"><b>${totals.done}</b><span>checks completed</span></div>
+    <div class="stat"><b>${totals.total}</b><span>possible checks</span></div>
+    <div class="stat"><b>${totals.pct}%</b><span>monthly completion</span></div>
+    <div class="stat"><b>${bestDay()}</b><span>best day</span></div>`;
+
+  renderWeeks();
+  renderToday();
+}
+function setGoal(id,v){if(!state.goals)state.goals={};state.goals[id]=Math.max(0,Math.min(31,+v||0));save();render();}
+function calcTotals(){
+  let done=0,total=habits.length*daysInMonth(viewYear,viewMonth);
+  for(let d=1;d<=daysInMonth(viewYear,viewMonth);d++)habits.forEach(h=>{if(getVal(dateKey(viewYear,viewMonth,d),h.id))done++});
+  return {done,total,pct:total?Math.round(done/total*100):0};
+}
+function dayPct(y,m,d){
+  let c=0;habits.forEach(h=>{if(getVal(dateKey(y,m,d),h.id))c++});
+  return Math.round(c/habits.length*100);
+}
+function bestDay(){
+  let best=0; for(let d=1;d<=daysInMonth(viewYear,viewMonth);d++)best=Math.max(best,dayPct(viewYear,viewMonth,d));
+  return best+"%";
+}
+function renderWeeks(){
+  const el=document.getElementById("weeks");el.innerHTML="";
+  const n=daysInMonth(viewYear,viewMonth);
+  for(let w=0;w<5;w++){
+    const start=w*7+1,end=Math.min(n,start+6);
+    if(start>n)continue;
+    let sum=0,c=0;for(let d=start;d<=end;d++){sum+=dayPct(viewYear,viewMonth,d);c++}
+    const pct=Math.round(sum/c);
+    el.insertAdjacentHTML("beforeend",`<div class="week-card" onclick="openRoutine()"><strong>WEEK ${w+1}</strong><div class="pct">${pct}%</div><small>Average daily completion</small></div>`);
+  }
+}
+function renderToday(){
+  const t=new Date();
+  const y=t.getFullYear(),m=t.getMonth(),d=t.getDate();
+  const dk=dateKey(y,m,d);
+  document.getElementById("todayTitle").textContent=isToday(viewYear,viewMonth,d)&&y===viewYear&&m===viewMonth?"Today":"Today";
+  document.getElementById("todayDate").textContent=t.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+  const pct=dayPct(y,m,d);
+  document.getElementById("todayProgress").style.width=pct+"%";
+  document.getElementById("todayPercent").textContent=pct+"%";
+  const arr=routines[t.getDay()];
+  document.getElementById("routineTitle").textContent=arr[0];
+  document.getElementById("routineList").innerHTML=arr.slice(1).map(x=>`<li>${x}</li>`).join("");
+}
+function openRoutine(){
+  document.getElementById("routineCards").innerHTML=Object.values(routines).map(a=>`<div class="routine-card"><b>${a[0]}</b><div>${a.slice(1).join(" • ")}</div></div>`).join("");
+  document.getElementById("modal").classList.add("show");
+}
+document.getElementById("closeModal").onclick=()=>document.getElementById("modal").classList.remove("show");
+document.getElementById("modal").onclick=e=>{if(e.target.id==="modal")e.currentTarget.classList.remove("show")};
+document.getElementById("todayBtn").onclick=()=>{const t=new Date();viewYear=t.getFullYear();viewMonth=t.getMonth();render()};
+document.getElementById("resetBtn").onclick=()=>{
+  if(confirm("Reset all checkmarks for this month?")){
+    for(let d=1;d<=daysInMonth(viewYear,viewMonth);d++)delete state[dateKey(viewYear,viewMonth,d)];
+    save();render();
+  }
+};
+render();
+</script>
+</body>
+</html>
